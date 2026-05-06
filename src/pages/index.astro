@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import Stats from '../components/Stats.astro';
+import Services from '../components/Services.astro';
+import Catalog from '../components/Catalog.astro';
+import FAQ from '../components/FAQ.astro';
+import Testimonials from '../components/Testimonials.astro';
+import About from '../components/About.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppButton from '../components/WhatsAppButton.astro';
+---
+
+<Layout title="Siseltronica | Sistemas Eléctricos y Electrónicos">
+	<a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+	<Navbar />
+	<main id="main-content">
+		<Hero />
+		<Stats />
+		<Services />
+		<Catalog limit={9} />
+		<FAQ />
+		<Testimonials />
+		<About />
+		<Contact />
+	</main>
+	<Footer />
+	<WhatsAppButton />
+</Layout>
+
+<style>
+	.skip-link {
+		position: absolute;
+		top: -100px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: var(--color-brand-blue);
+		color: white;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0 0 0.5rem 0.5rem;
+		font-weight: 600;
+		z-index: 9999;
+		transition: top 0.3s ease;
+		text-decoration: none;
+	}
+	.skip-link:focus {
+		top: 0;
+		outline: 2px solid white;
+		outline-offset: 2px;
+	}
+</style>

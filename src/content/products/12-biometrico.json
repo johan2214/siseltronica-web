@@ -1,0 +1,8 @@
+{
+    "title": "Control de Acceso Biométrico",
+    "description": "Sistema de control de acceso con huella digital, tarjeta RFID, contraseña y llave.",
+    "category": "intercom",
+    "iconColor": "red",
+    "iconType": "biometric",
+    "order": 12
+}

@@ -1,0 +1,9 @@
+{
+    "title": "Kit Monitoreo CCTV Completo",
+    "description": "Kit completo: 4 cámaras + DVR + monitor + cables + instalación incluida.",
+    "category": "cctv",
+    "isPopular": true,
+    "iconColor": "red",
+    "iconType": "kit",
+    "order": 6
+}

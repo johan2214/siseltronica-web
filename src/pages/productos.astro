@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Catalog from '../components/Catalog.astro';
+import Footer from '../components/Footer.astro';
+import WhatsAppButton from '../components/WhatsAppButton.astro';
+---
+
+<Layout title="Catálogo Completo | Siseltronica">
+    <Navbar />
+    <main class="pt-20">
+        <div class="py-12 bg-surfaceLight border-b border-white/5">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <nav class="flex mb-4 text-sm text-gray-500" aria-label="Breadcrumb">
+                    <ol class="flex items-center space-x-2">
+                        <li><a href="/" class="hover:text-white transition-colors">Inicio</a></li>
+                        <li><span class="mx-2">/</span></li>
+                        <li class="text-gray-300 font-medium">Catálogo</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <Catalog />
+    </main>
+    <Footer />
+    <WhatsAppButton />
+</Layout>

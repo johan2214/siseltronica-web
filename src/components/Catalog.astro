@@ -1,0 +1,257 @@
+---
+import { getCollection } from 'astro:content';
+import ProductCard from './ProductCard.astro';
+
+interface Props {
+    limit?: number;
+    showFilters?: boolean;
+}
+
+const { limit, showFilters = true } = Astro.props;
+
+const categories = [
+    { id: 'todos', name: 'Todos' },
+    { id: 'camaras', name: '📷 Cámaras', label: 'Filtrar cámaras de vigilancia' },
+    { id: 'cctv', name: '️ CCTV', label: 'Filtrar sistemas CCTV' },
+    { id: 'portones', name: '🚪 Portones', label: 'Filtrar portones eléctricos' },
+    { id: 'electricos', name: '⚡ Eléctricos', label: 'Filtrar productos eléctricos' },
+    { id: 'intercom', name: '📞 Intercomunicadores', label: 'Filtrar intercomunicadores' },
+    { id: 'cables', name: '🔌 Cables y Accesorios', label: 'Filtrar cables y accesorios' }
+];
+
+const allProductsCollection = await getCollection('products');
+const sortedProducts = allProductsCollection.sort((a: any, b: any) => (a.data.order || 0) - (b.data.order || 0));
+const allProducts = sortedProducts.map((p: any) => p.data);
+
+const products = limit ? allProducts.slice(0, limit) : allProducts;
+---
+<section id="catalogo" class="py-24 relative">
+    <div class="absolute inset-0 bg-linear-to-b from-dark via-surface/10 to-dark"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 fade-in">
+            <span class="inline-block px-4 py-1.5 rounded-full border text-sm font-medium mb-4" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa;">Catálogo de Productos</span>
+            <h2 class="text-4xl sm:text-5xl font-black mb-4">Nuestros <span class="gradient-text">Productos</span></h2>
+            <p class="text-gray-400 max-w-2xl mx-auto text-lg">Explora nuestra selección de equipos. Consulta precios y disponibilidad por WhatsApp.</p>
+        </div>
+
+        {showFilters && (
+            <div class="flex flex-wrap justify-center gap-3 mb-12 fade-in">
+                {categories.map((cat) => (
+                    <button 
+                        class={`filter-btn px-5 py-2.5 rounded-full text-sm font-medium border bg-surface transition-all ${cat.id === 'todos' ? 'active' : 'text-gray-200'}`}
+                        style={cat.id === 'todos' ? 'border-color: rgba(59, 130, 246, 0.4);' : 'border-color: rgba(255,255,255,0.1);'}
+                        data-filter={cat.id}
+                        aria-label={cat.label}
+                    >
+                        {cat.name}
+                    </button>
+                ))}
+            </div>
+        )}
+
+        <div id="productGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" role="region" aria-label="Catálogo de productos" aria-live="polite">
+            {products.map((product: any) => (
+                <ProductCard 
+                    title={product.title}
+                    description={product.description}
+                    category={product.category}
+                    isNew={product.isNew}
+                    isPopular={product.isPopular}
+                    isOffer={product.isOffer}
+                    isWiFi={product.isWiFi}
+                    iconColor={product.iconColor as any}
+                >
+                    <div slot="icon" class="h-28 w-28 flex items-center justify-center">
+                        {product.iconType === 'dome' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="20" y="30" width="80" height="60" rx="8" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.15)"></rect>
+                                <circle cx="60" cy="60" r="20" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.1)"></circle>
+                                <circle cx="60" cy="60" r="8" fill="#60a5fa" opacity="0.6"></circle>
+                                <path d="M40 30L50 15H70L80 30" stroke="#60a5fa" stroke-width="2" fill="rgba(59,130,246,0.1)"></path>
+                            </svg>
+                        )}
+                        {product.iconType === 'bullet' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="15" y="35" width="60" height="40" rx="6" stroke="#f87171" stroke-width="2.5" fill="rgba(239,68,68,0.15)"></rect>
+                                <circle cx="45" cy="55" r="15" stroke="#f87171" stroke-width="2.5" fill="rgba(239,68,68,0.1)"></circle>
+                                <circle cx="45" cy="55" r="6" fill="#f87171" opacity="0.6"></circle>
+                                <rect x="75" y="45" width="30" height="20" rx="4" stroke="#f87171" stroke-width="2" fill="rgba(239,68,68,0.1)"></rect>
+                                <line x1="75" y1="50" x2="105" y2="50" stroke="#f87171" stroke-width="1.5"></line>
+                                <line x1="75" y1="55" x2="105" y2="55" stroke="#f87171" stroke-width="1.5"></line>
+                                <line x1="75" y1="60" x2="105" y2="60" stroke="#f87171" stroke-width="1.5"></line>
+                            </svg>
+                        )}
+                        {product.iconType === 'dvr' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="20" y="25" width="80" height="55" rx="6" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.15)"></rect>
+                                <rect x="25" y="30" width="70" height="45" rx="3" fill="rgba(59,130,246,0.1)" stroke="#60a5fa" stroke-width="1"></rect>
+                                <circle cx="40" cy="52" r="8" stroke="#60a5fa" stroke-width="2" fill="rgba(59,130,246,0.2)"></circle>
+                                <circle cx="60" cy="52" r="8" stroke="#60a5fa" stroke-width="2" fill="rgba(59,130,246,0.2)"></circle>
+                                <circle cx="80" cy="52" r="8" stroke="#60a5fa" stroke-width="2" fill="rgba(59,130,246,0.2)"></circle>
+                                <rect x="45" y="80" width="30" height="8" rx="2" fill="#60a5fa" opacity="0.4"></rect>
+                                <rect x="50" y="88" width="20" height="6" rx="2" fill="#60a5fa" opacity="0.3"></rect>
+                            </svg>
+                        )}
+                        {product.iconType === 'gate' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="15" y="20" width="90" height="70" rx="4" stroke="#25d366" stroke-width="2.5" fill="rgba(37,211,102,0.1)"></rect>
+                                <rect x="20" y="25" width="35" height="60" rx="2" stroke="#25d366" stroke-width="2" fill="rgba(37,211,102,0.08)"></rect>
+                                <rect x="65" y="25" width="35" height="60" rx="2" stroke="#25d366" stroke-width="2" fill="rgba(37,211,102,0.08)"></rect>
+                                <circle cx="42" cy="55" r="4" fill="#25d366" opacity="0.6"></circle>
+                                <circle cx="82" cy="55" r="4" fill="#25d366" opacity="0.6"></circle>
+                                <path d="M55 30L65 30" stroke="#25d366" stroke-width="2"></path>
+                            </svg>
+                        )}
+                        {product.iconType === 'panel' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="25" y="20" width="70" height="80" rx="6" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.15)"></rect>
+                                <rect x="30" y="25" width="60" height="70" rx="4" fill="rgba(59,130,246,0.1)" stroke="#60a5fa" stroke-width="1.5"></rect>
+                                <rect x="35" y="30" width="20" height="12" rx="2" fill="#60a5fa" opacity="0.4"></rect>
+                                <rect x="35" y="48" width="20" height="12" rx="2" fill="#60a5fa" opacity="0.4"></rect>
+                                <rect x="35" y="66" width="20" height="12" rx="2" fill="#60a5fa" opacity="0.4"></rect>
+                                <rect x="60" y="30" width="25" height="8" rx="2" fill="#60a5fa" opacity="0.3"></rect>
+                                <rect x="60" y="42" width="25" height="8" rx="2" fill="#60a5fa" opacity="0.3"></rect>
+                                <rect x="60" y="54" width="25" height="8" rx="2" fill="#60a5fa" opacity="0.3"></rect>
+                                <rect x="60" y="66" width="25" height="8" rx="2" fill="#60a5fa" opacity="0.3"></rect>
+                            </svg>
+                        )}
+                        {product.iconType === 'kit' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="25" y="30" width="70" height="50" rx="6" stroke="#f87171" stroke-width="2.5" fill="rgba(239,68,68,0.15)"></rect>
+                                <rect x="30" y="35" width="60" height="40" rx="3" fill="rgba(239,68,68,0.1)" stroke="#f87171" stroke-width="1"></rect>
+                                <polygon points="45,48 45,62 60,55" fill="#f87171" opacity="0.6"></polygon>
+                                <line x1="50" y1="80" x2="70" y2="80" stroke="#f87171" stroke-width="2"></line>
+                                <line x1="60" y1="80" x2="60" y2="88" stroke="#f87171" stroke-width="2"></line>
+                                <rect x="45" y="88" width="30" height="4" rx="2" fill="#f87171" opacity="0.3"></rect>
+                            </svg>
+                        )}
+                        {product.iconType === 'intercom' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="25" y="15" width="70" height="85" rx="8" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.15)"></rect>
+                                <rect x="30" y="20" width="60" height="50" rx="4" fill="rgba(59,130,246,0.1)" stroke="#60a5fa" stroke-width="1.5"></rect>
+                                <circle cx="60" cy="45" r="12" stroke="#60a5fa" stroke-width="2" fill="rgba(59,130,246,0.2)"></circle>
+                                <circle cx="60" cy="45" r="5" fill="#60a5fa" opacity="0.5"></circle>
+                                <rect x="38" y="78" width="44" height="12" rx="3" fill="#60a5fa" opacity="0.3"></rect>
+                                <circle cx="45" cy="84" r="3" fill="#60a5fa" opacity="0.5"></circle>
+                                <circle cx="55" cy="84" r="3" fill="#60a5fa" opacity="0.5"></circle>
+                                <circle cx="65" cy="84" r="3" fill="#60a5fa" opacity="0.5"></circle>
+                            </svg>
+                        )}
+                        {product.iconType === 'cable' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <path d="M30 30 Q40 25 50 35 Q60 45 55 55 Q50 65 60 70 Q70 75 75 65 Q80 55 90 60" stroke="#f87171" stroke-width="4" fill="none" stroke-linecap="round"></path>
+                                <circle cx="30" cy="30" r="6" fill="#f87171" opacity="0.5"></circle>
+                                <circle cx="90" cy="60" r="6" fill="#f87171" opacity="0.5"></circle>
+                                <path d="M35 90 Q45 85 55 90 Q65 95 75 85 Q85 75 95 80" stroke="#60a5fa" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.6"></path>
+                            </svg>
+                        )}
+                        {product.iconType === 'gate-dual' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="20" y="20" width="80" height="65" rx="4" stroke="#facc15" stroke-width="2.5" fill="rgba(234,179,8,0.1)"></rect>
+                                <rect x="25" y="25" width="32" height="55" rx="2" stroke="#facc15" stroke-width="2" fill="rgba(234,179,8,0.08)"></rect>
+                                <rect x="63" y="25" width="32" height="55" rx="2" stroke="#facc15" stroke-width="2" fill="rgba(234,179,8,0.08)"></rect>
+                                <path d="M55 30L65 30L65 80L55 80Z" fill="#facc15" opacity="0.15"></path>
+                                <circle cx="41" cy="52" r="3" fill="#facc15" opacity="0.5"></circle>
+                                <circle cx="79" cy="52" r="3" fill="#facc15" opacity="0.5"></circle>
+                                <rect x="30" y="90" width="60" height="6" rx="3" fill="#facc15" opacity="0.3"></rect>
+                            </svg>
+                        )}
+                        {product.iconType === 'ups' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="30" y="20" width="60" height="75" rx="8" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.15)"></rect>
+                                <path d="M55 35 L48 55 H58 L52 80" stroke="#60a5fa" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <rect x="35" y="90" width="50" height="3" rx="1.5" fill="#60a5fa" opacity="0.3"></rect>
+                                <circle cx="45" cy="95" r="3" fill="#60a5fa" opacity="0.4"></circle>
+                                <circle cx="75" cy="95" r="3" fill="#60a5fa" opacity="0.4"></circle>
+                            </svg>
+                        )}
+                        {product.iconType === 'ptz' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <circle cx="60" cy="55" r="30" stroke="#60a5fa" stroke-width="2.5" fill="rgba(59,130,246,0.1)"></circle>
+                                <circle cx="60" cy="55" r="20" stroke="#60a5fa" stroke-width="1.5" fill="rgba(59,130,246,0.05)"></circle>
+                                <circle cx="60" cy="55" r="8" fill="#60a5fa" opacity="0.5"></circle>
+                                <path d="M60 25 L60 15" stroke="#60a5fa" stroke-width="2"></path>
+                                <path d="M55 15 L60 10 L65 15" stroke="#60a5fa" stroke-width="2" fill="none"></path>
+                                <path d="M35 35 L28 28" stroke="#60a5fa" stroke-width="1.5"></path>
+                                <path d="M85 35 L92 28" stroke="#60a5fa" stroke-width="1.5"></path>
+                                <rect x="40" y="85" width="40" height="12" rx="4" fill="#60a5fa" opacity="0.2"></rect>
+                            </svg>
+                        )}
+                        {product.iconType === 'biometric' && (
+                            <svg class="h-full w-full" viewBox="0 0 120 120" fill="none">
+                                <rect x="30" y="25" width="60" height="65" rx="8" stroke="#f87171" stroke-width="2.5" fill="rgba(239,68,68,0.15)"></rect>
+                                <circle cx="60" cy="48" r="14" stroke="#f87171" stroke-width="2" fill="rgba(239,68,68,0.1)"></circle>
+                                <path d="M54 48 C54 44 58 42 60 42 C62 42 66 44 66 48" stroke="#f87171" stroke-width="2" fill="none"></path>
+                                <circle cx="60" cy="52" r="3" fill="#f87171" opacity="0.5"></circle>
+                                <rect x="38" y="68" width="44" height="10" rx="3" fill="#f87171" opacity="0.2"></rect>
+                                <rect x="45" y="68" width="30" height="10" rx="2" fill="rgba(239,68,68,0.1)" stroke="#f87171" stroke-width="1"></rect>
+                                <line x1="50" y1="73" x2="70" y2="73" stroke="#f87171" stroke-width="1.5" opacity="0.5"></line>
+                            </svg>
+                        )}
+                    </div>
+                </ProductCard>
+            ))}
+        </div>
+
+        {limit && allProducts.length > limit && (
+            <div class="mt-16 text-center fade-in">
+                <a 
+                    href="/productos" 
+                    class="inline-flex items-center gap-2 px-8 py-3 bg-surface border border-brand-blue/30 text-white font-semibold rounded-xl transition-all hover:bg-brand-blue/10 hover:shadow-lg hover:shadow-brand-blue/10"
+                >
+                    Ver todo el catálogo
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+            </div>
+        )}
+
+        <!-- No results message -->
+        <div id="noResults" class="hidden text-center py-16">
+            <svg class="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+            <p class="text-gray-400 text-lg">No se encontraron productos en esta categoría.</p>
+        </div>
+        <div class="line-glow mt-16"></div>
+    </div>
+</section>
+
+<script>
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const productCards = document.querySelectorAll('.product-card');
+    const noResults = document.getElementById('noResults');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active state
+            filterBtns.forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('text-gray-400');
+                if (b instanceof HTMLElement) b.style.borderColor = 'rgba(255,255,255,0.1)';
+            });
+            btn.classList.add('active');
+            btn.classList.remove('text-gray-400');
+            if (btn instanceof HTMLElement) btn.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+
+            const filter = (btn as HTMLElement).dataset.filter;
+            let visibleCount = 0;
+
+            productCards.forEach(card => {
+                const category = (card as HTMLElement).dataset.category;
+                if (filter === 'todos' || category === filter) {
+                    card.classList.remove('hidden-card');
+                    card.classList.add('visible-card');
+                    visibleCount++;
+                } else {
+                    card.classList.remove('visible-card');
+                    card.classList.add('hidden-card');
+                }
+            });
+
+            // Show/hide no results message
+            if (visibleCount === 0) {
+                noResults?.classList.remove('hidden');
+            } else {
+                noResults?.classList.add('hidden');
+            }
+        });
+    });
+</script>

@@ -1,0 +1,116 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = "Siseltronica | Sistemas Eléctricos y Electrónicos - Expertos en instalación y venta de sistemas eléctricos, cámaras de vigilancia y más." } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="author" content="Siseltronica C.A." />
+		<meta name="robots" content="index, follow" />
+		
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "LocalBusiness",
+				"name": "Siseltronica",
+				"description": "Sistemas Eléctricos y Electrónicos - Expertos en instalación y venta de sistemas eléctricos, cámaras de vigilancia, portones eléctricos y más.",
+				"url": "https://siseltronica.com",
+				"telephone": "+58-414-077-9060",
+				"email": "info@siseltronica.com",
+				"openingHoursSpecification": [
+					{
+						"@type": "OpeningHoursSpecification",
+						"dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+						"opens": "08:00",
+						"closes": "18:00"
+					},
+					{
+						"@type": "OpeningHoursSpecification",
+						"dayOfWeek": "Saturday",
+						"opens": "08:00",
+						"closes": "13:00"
+					}
+				],
+				"address": {
+					"@type": "PostalAddress",
+					"addressCountry": "VE"
+				},
+				"priceRange": "$$",
+				"image": "https://siseltronica.com/og-image.svg"
+			}
+		</script>
+
+		
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={Astro.url} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content="/og-image.svg" />
+
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={Astro.url} />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content="/og-image.svg" />
+
+		<!-- Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	</head>
+	<body class="bg-dark text-white overflow-x-hidden">
+		<slot />
+
+		<script>
+			// Fade-in on scroll
+			const fadeElements = document.querySelectorAll('.fade-in');
+			const observerOptions = {
+				threshold: 0.1,
+				rootMargin: '0px 0px -50px 0px'
+			};
+
+			const observer = new IntersectionObserver((entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('visible');
+						observer.unobserve(entry.target);
+					}
+				});
+			}, observerOptions);
+
+			fadeElements.forEach(el => observer.observe(el));
+
+			// Smooth scroll for anchor links
+			document.querySelectorAll('a[href^="#"], a[href^="/#"]').forEach(anchor => {
+				anchor.addEventListener('click', function(e) {
+					const href = anchor.getAttribute('href');
+					if (!href) return;
+					
+					const targetId = href.startsWith('/#') ? href.slice(1) : href;
+					const target = document.querySelector(targetId);
+					
+					if (target && window.location.pathname === '/') {
+						e.preventDefault();
+						target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					}
+				});
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,61 @@
+---
+const faqs = [
+    {
+        question: "¿Tienen garantía los sistemas de seguridad?",
+        answer: "Sí, todos nuestros equipos cuentan con una garantía de fábrica de 1 año y nuestra mano de obra de instalación tiene una garantía de 6 meses contra cualquier falla técnica."
+    },
+    {
+        question: "¿Realizan instalaciones fuera de la ciudad?",
+        answer: "Actualmente cubrimos toda el área metropolitana y estados centrales. Para instalaciones en otras zonas, aplicamos un recargo logístico dependiendo de la distancia."
+    },
+    {
+        question: "¿Cómo puedo solicitar un presupuesto personalizado?",
+        answer: "Es muy sencillo. Solo haz clic en el botón de WhatsApp o envíanos un mensaje a través del formulario de contacto con los detalles de tu requerimiento y te responderemos en menos de 24 horas."
+    },
+    {
+        question: "¿Ofrecen planes de mantenimiento preventivo?",
+        answer: "Sí, contamos con programas de mantenimiento trimestral y semestral para empresas y residencias, asegurando que tus cámaras y sistemas eléctricos funcionen al 100% siempre."
+    }
+];
+---
+
+<section id="faq" class="py-24 relative">
+    <div class="absolute inset-0 bg-linear-to-b from-dark via-surface/20 to-dark"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-16 fade-in">
+            <h2 class="text-4xl font-black mb-4">Preguntas <span class="gradient-text">Frecuentes</span></h2>
+            <p class="text-gray-400 text-lg">Todo lo que necesitas saber sobre nuestros servicios y productos.</p>
+        </div>
+
+        <div class="space-y-4">
+            {faqs.map((faq, index) => (
+                <div class="fade-in" style={`transition-delay: ${index * 100}ms`}>
+                    <details class="group bg-surface border border-white/5 rounded-2xl transition-all duration-500 hover:border-brand-blue/30 overflow-hidden">
+                        <summary class="flex items-center justify-between p-6 cursor-pointer list-none">
+                            <span class="text-lg font-semibold text-gray-200 group-open:text-white transition-colors pr-4">{faq.question}</span>
+                            <span class="ml-4 shrink-0 transition-transform duration-300 group-open:rotate-180">
+                                <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </span>
+                        </summary>
+                        <div class="px-6 pb-6 text-gray-400 leading-relaxed border-t border-white/5 pt-4">
+                            {faq.answer}
+                        </div>
+                    </details>
+                </div>
+            ))}
+        </div>
+    </div>
+</section>
+
+<style>
+    summary::-webkit-details-marker {
+        display: none;
+    }
+    
+    details[open] {
+        background: rgba(59, 130, 246, 0.05);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+</style>

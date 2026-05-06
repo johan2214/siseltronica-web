@@ -1,0 +1,9 @@
+{
+    "title": "Cámara WiFi Interior PTZ",
+    "description": "Cámara WiFi rotativa 360°, resolución 2K, audio bidireccional, detección humana AI.",
+    "category": "camaras",
+    "isWiFi": true,
+    "iconColor": "blue",
+    "iconType": "ptz",
+    "order": 11
+}

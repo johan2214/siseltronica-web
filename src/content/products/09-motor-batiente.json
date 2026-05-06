@@ -1,0 +1,9 @@
+{
+    "title": "Motor Portón Batiente Dual",
+    "description": "Motor dual para portón batiente hasta 400kg por hoja, sensores de obstáculo incluidos.",
+    "category": "portones",
+    "isOffer": true,
+    "iconColor": "yellow",
+    "iconType": "gate-dual",
+    "order": 9
+}
