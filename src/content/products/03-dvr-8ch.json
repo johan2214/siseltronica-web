@@ -1,8 +1,11 @@
 {
-    "title": "DVR/NVR 8 Canales 4K",
-    "description": "Grabador digital de video 8 canales, soporte 4K, disco duro incluido, acceso remoto.",
-    "category": "cctv",
+    "title": "DVR 8 Canales 5MP",
+    "shortDescription": "Control total de tus cámaras.",
+    "description": "Grabador digital con soporte para 8 cámaras, compresión H.265+, acceso remoto.",
+    "category": "camaras",
+    "parentCategory": "seguridad",
     "iconColor": "blue",
     "iconType": "dvr",
+    "image": "/images/products/prod-dvr-8ch.png",
     "order": 3
 }

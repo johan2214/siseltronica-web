@@ -1,0 +1,155 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Gestión de Usuarios">
+    <div id="admin-content" class="hidden">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-3xl font-black">Usuarios y Roles</h1>
+            <div class="bg-brand-blue/10 border border-brand-blue/20 px-4 py-2 rounded-xl text-xs font-bold text-brand-blue">
+                MODO ADMINISTRADOR
+            </div>
+        </div>
+
+        <div class="glass rounded-3xl border border-white/10 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest">
+                            <th class="px-8 py-4">Usuario</th>
+                            <th class="px-8 py-4">Rol</th>
+                            <th class="px-8 py-4">Última Actualización</th>
+                            <th class="px-8 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5" id="users-list">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8 p-6 rounded-2xl bg-brand-blue/5 border border-brand-blue/10">
+            <h4 class="text-sm font-bold text-brand-blue mb-2">💡 Información sobre Roles</h4>
+            <ul class="text-xs text-gray-400 space-y-2">
+                <li>• <strong>ADMIN</strong>: Puede gestionar productos, categorías, usuarios y eliminar cualquier registro.</li>
+                <li>• <strong>EDITOR</strong>: Puede crear y editar productos/categorías, pero no eliminarlos ni gestionar usuarios.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="loading-state" class="flex flex-col items-center justify-center py-20">
+        <div class="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-gray-500 font-medium">Verificando permisos de administrador...</p>
+    </div>
+
+    <div id="unauthorized-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+        <div class="text-6xl mb-6">🚫</div>
+        <h2 class="text-2xl font-black mb-2">Acceso Denegado</h2>
+        <p class="text-gray-500 max-w-md mb-8">No tienes permisos de administrador para gestionar usuarios. Contacta al administrador principal si esto es un error.</p>
+        <a href="/admin" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all font-bold">Volver al Dashboard</a>
+    </div>
+</AdminLayout>
+
+<script>
+    import { supabase } from '../../lib/supabase';
+
+    const adminContent = document.getElementById('admin-content');
+    const loadingState = document.getElementById('loading-state');
+    const unauthorizedState = document.getElementById('unauthorized-state');
+    const usersList = document.getElementById('users-list');
+
+    async function init() {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+            window.location.href = '/admin/login';
+            return;
+        }
+
+        // Check profile role on client side
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+
+        if (profile?.role !== 'admin') {
+            loadingState?.classList.add('hidden');
+            unauthorizedState?.classList.remove('hidden');
+            return;
+        }
+
+        // Fetch all users
+        const { data: users, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            alert("Error cargando usuarios: " + error.message);
+            return;
+        }
+
+        // Render users
+        if (usersList) {
+            usersList.innerHTML = users.map(user => `
+                <tr class="hover:bg-white/[0.02] transition-colors">
+                    <td class="px-8 py-6">
+                        <div class="font-bold text-white">${user.email}</div>
+                        <div class="text-xs text-gray-500 font-mono uppercase">${user.id.substring(0,8)}...</div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <select 
+                            class="role-select bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-hidden"
+                            data-user-id="${user.id}"
+                            ${user.id === session.user.id ? 'disabled' : ''}
+                        >
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>ADMIN</option>
+                            <option value="editor" ${user.role === 'editor' ? 'selected' : ''}>EDITOR</option>
+                        </select>
+                    </td>
+                    <td class="px-8 py-6 text-sm text-gray-400">
+                        ${new Date(user.updated_at).toLocaleDateString()}
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        ${user.id !== session.user.id ? `
+                            <button 
+                                class="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-all delete-user"
+                                data-id="${user.id}"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Attach listeners after rendering
+            setupListeners();
+        }
+
+        loadingState?.classList.add('hidden');
+        adminContent?.classList.remove('hidden');
+    }
+
+    function setupListeners() {
+        document.querySelectorAll('.role-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
+                const userId = (e.target as HTMLSelectElement).dataset.userId;
+                const newRole = (e.target as HTMLSelectElement).value;
+
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ role: newRole })
+                    .eq('id', userId);
+
+                if (error) alert("Error actualizando rol: " + error.message);
+                else alert("Rol actualizado correctamente.");
+            });
+        });
+    }
+
+    init();
+</script>

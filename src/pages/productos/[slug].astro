@@ -1,0 +1,263 @@
+---
+export const prerender = false;
+import { supabase } from '../../lib/supabase';
+import { Image } from 'astro:assets';
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import WhatsAppButton from '../../components/WhatsAppButton.astro';
+import ProductCard from '../../components/ProductCard.astro';
+
+const { slug } = Astro.params;
+
+// Get the product first
+let { data: product } = await supabase
+    .from('products')
+    .select('*')
+    .ilike('slug', slug)
+    .maybeSingle();
+
+if (!product) {
+    // Try one more time with exact match if ilike fails
+    const { data: retry } = await supabase
+        .from('products')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+    
+    if (!retry) return Astro.redirect('/404');
+    product = retry;
+}
+
+// Get category info separately
+const { data: categoryData } = await supabase
+    .from('categories')
+    .select('*')
+    .eq('id', product.category_id)
+    .maybeSingle();
+
+product.category = categoryData;
+
+// Get parent category info safely
+let parentCategory = null;
+if (product.category?.parent_id) {
+    const { data: parentData } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('id', product.category.parent_id)
+        .maybeSingle();
+    parentCategory = parentData;
+}
+
+// Get related products (same category)
+const { data: relatedData } = await supabase
+    .from('products')
+    .select('*, category:categories(*)')
+    .eq('category_id', product.category_id)
+    .neq('id', product.id)
+    .limit(4);
+
+const relatedProducts = relatedData || [];
+
+const title = `${product.title} | Siseltronica`;
+const whatsappText = `Hola! Estoy interesado en el producto: *${product.title}*. ¿Podrían darme más información sobre precio y disponibilidad?`;
+
+// JSON-LD for SEO
+const jsonLd = {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": product.title,
+  "image": product.image_url,
+  "description": product.description,
+  "brand": {
+    "@type": "Brand",
+    "name": "Siseltronica"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": Astro.url.toString(),
+    "priceCurrency": "USD",
+    "availability": product.stock_status === 'instock' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+  }
+};
+---
+
+<Layout title={title}>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <Navbar />
+    
+    <main class="pt-32 pb-24 min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Breadcrumbs -->
+            <nav class="flex mb-8 text-sm text-gray-400" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2">
+                    <li><a href="/" class="hover:text-brand-blue-light transition-colors">Inicio</a></li>
+                    <li class="flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                        <a href="/productos" class="hover:text-brand-blue-light transition-colors">Productos</a>
+                    </li>
+                    {parentCategory && (
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            <a href={`/categorias/${parentCategory.slug}`} class="hover:text-brand-blue-light transition-colors">{parentCategory.name}</a>
+                        </li>
+                    )}
+                    {product.category && (
+                        <li class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg>
+                            <span class="text-white font-medium">{product.category.name}</span>
+                        </li>
+                    )}
+                </ol>
+            </nav>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20">
+                <!-- Image Gallery -->
+                <div class="space-y-6">
+                    <div class="glass p-4 rounded-[2.5rem] border border-white/10 overflow-hidden group">
+                        <div class="relative aspect-square rounded-[2rem] overflow-hidden bg-white/5">
+                            {product.image_url ? (
+                                <img 
+                                    src={product.image_url} 
+                                    alt={product.title}
+                                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                            ) : (
+                                <div class="w-full h-full flex items-center justify-center text-gray-700">
+                                    <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                            )}
+                            
+                            <!-- Badges -->
+                            <div class="absolute top-6 left-6 flex flex-col gap-3">
+                                {product.is_new && (
+                                    <span class="px-4 py-1.5 bg-brand-blue text-white text-xs font-black rounded-full shadow-lg shadow-brand-blue/20">NUEVO</span>
+                                )}
+                                {product.is_offer && (
+                                    <span class="px-4 py-1.5 bg-brand-red text-white text-xs font-black rounded-full shadow-lg shadow-brand-red/20">OFERTA</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Info -->
+                <div class="flex flex-col">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black text-brand-blue uppercase tracking-widest">
+                                {product.category?.name || 'General'}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <div class={`w-2 h-2 rounded-full ${product.stock_status === 'instock' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'}`}></div>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">
+                                    {product.stock_status === 'instock' ? 'En Stock' : product.stock_status === 'onorder' ? 'Bajo Pedido' : 'Agotado'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <h1 class="text-5xl sm:text-6xl font-black text-white mb-6 leading-tight tracking-tighter">
+                            {product.title}
+                        </h1>
+
+                        <p class="text-xl text-gray-400 leading-relaxed mb-10">
+                            {product.short_description || product.description}
+                        </p>
+
+                        <div class="space-y-8 mb-12">
+                            <div class="p-8 rounded-3xl bg-white/5 border border-white/10">
+                                <span class="block text-gray-500 text-sm font-medium uppercase mb-1">Precio</span>
+                                <span class="text-4xl font-black text-white">Consultar</span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                            {product.pdf_url && (
+                                <a 
+                                    href={product.pdf_url} 
+                                    target="_blank"
+                                    class="flex-1 w-full flex items-center justify-center gap-3 px-8 py-5 border-2 border-white/10 hover:border-brand-blue/30 text-white font-black rounded-2xl transition-all hover:bg-brand-blue/5"
+                                >
+                                    <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    Ficha Técnica (PDF)
+                                </a>
+                            )}
+                            <a 
+                                href={`https://wa.me/573000000000?text=Hola,%20me%20interesa%20el%20producto:%20${product.title}`} 
+                                target="_blank"
+                                class="flex-1 w-full flex items-center justify-center gap-3 px-8 py-5 bg-green-600 hover:bg-green-500 text-white font-black rounded-2xl transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-600/30"
+                            >
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .018 5.393 0 12.029c0 2.119.554 4.188 1.606 6.011L0 24l6.132-1.61a11.808 11.808 0 005.912 1.599h.005c6.634 0 12.032-5.394 12.035-12.03a11.772 11.772 0 00-3.473-8.503z"/></svg>
+                                Consultar Ahora
+                            </a>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            id="specs-toggle"
+                            class="w-full flex items-center justify-between p-8 rounded-3xl border border-white/5 hover:border-white/10 transition-all group"
+                        >
+                            <span class="text-xl font-bold">Especificaciones Detalladas</span>
+                            <svg class="w-6 h-6 text-brand-blue transform group-hover:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="specs-content" class="hidden mt-4 p-8 rounded-3xl bg-white/[0.02] border border-white/5 animate-fade-in">
+                            <div class="prose prose-invert max-w-none">
+                                <p class="text-gray-400 whitespace-pre-line">{product.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Products -->
+            {relatedProducts.length > 0 && (
+                <section class="mt-32">
+                    <div class="flex items-end justify-between mb-12">
+                        <div>
+                            <span class="text-brand-blue text-xs font-black uppercase tracking-widest mb-4 block">Recomendaciones</span>
+                            <h2 class="text-4xl sm:text-5xl font-black">Productos Similares</h2>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {relatedProducts.map(p => (
+                            <ProductCard 
+                                id={p.slug}
+                                title={p.title}
+                                shortDescription={p.short_description}
+                                description={p.description}
+                                category={p.category?.slug || 'general'}
+                                isNew={p.is_new}
+                                isPopular={p.is_popular}
+                                isOffer={p.is_offer}
+                                isWiFi={p.is_wifi}
+                                iconColor={p.icon_color || 'blue'}
+                                image={p.image_url}
+                                stockStatus={p.stock_status}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
+        </div>
+    </main>
+
+    <Footer />
+    <WhatsAppButton />
+</Layout>
+
+<script>
+    const toggle = document.getElementById('specs-toggle');
+    const content = document.getElementById('specs-content');
+    
+    toggle?.addEventListener('click', () => {
+        content?.classList.toggle('hidden');
+    });
+</script>
+
+<style>
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fade-in 0.4s ease-out forwards;
+    }
+</style>

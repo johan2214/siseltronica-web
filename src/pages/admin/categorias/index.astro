@@ -1,0 +1,125 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../lib/supabase';
+
+const { data: categories } = await supabase
+    .from('categories')
+    .select('*, parent:categories(name)')
+    .order('order_index', { ascending: true });
+
+const parentCategories = categories?.filter(c => !c.parent_id) || [];
+---
+
+<AdminLayout title="Gestionar Categorías">
+    <div class="grid lg:grid-cols-3 gap-12">
+        <!-- Add Category Form -->
+        <div class="lg:col-span-1">
+            <div class="glass p-8 rounded-3xl border border-white/10 sticky top-32">
+                <h2 class="text-xl font-black mb-6">Añadir Categoría</h2>
+                <form id="category-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-2">Nombre</label>
+                        <input type="text" name="name" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-brand-blue/50" placeholder="Ej: Cámaras IP" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-2">Slug</label>
+                        <input type="text" name="slug" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:border-brand-blue/50 font-mono" placeholder="camaras-ip" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-2">Categoría Padre (Opcional)</label>
+                        <select name="parent_id" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden">
+                            <option value="">Ninguna (Es categoría principal)</option>
+                            {parentCategories.map(cat => (
+                                <option value={cat.id}>{cat.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-2">Orden</label>
+                        <input type="number" name="order_index" defaultValue="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden" />
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-brand-blue hover:bg-brand-blue-light text-white font-black rounded-xl transition-all shadow-lg shadow-brand-blue/20">
+                        Crear Categoría
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Categories List -->
+        <div class="lg:col-span-2">
+            <div class="glass rounded-3xl border border-white/10 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-white/5 text-gray-400 text-xs font-bold uppercase tracking-widest">
+                            <th class="px-8 py-4">Nombre</th>
+                            <th class="px-8 py-4">Padre</th>
+                            <th class="px-8 py-4">Orden</th>
+                            <th class="px-8 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {categories?.map(cat => (
+                            <tr class="hover:bg-white/[0.02] transition-colors">
+                                <td class="px-8 py-6">
+                                    <div class="font-bold text-white">{cat.name}</div>
+                                    <div class="text-xs text-gray-500 font-mono">{cat.slug}</div>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <span class="text-sm text-gray-400">{cat.parent?.name || '-'}</span>
+                                </td>
+                                <td class="px-8 py-6">
+                                    <span class="text-sm text-gray-400">{cat.order_index}</span>
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <div class="flex items-center justify-end gap-3">
+                                        <a href={`/admin/categorias/editar?id=${cat.id}`} class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                        </a>
+                                        <button class="p-2 rounded-lg bg-white/5 hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-all delete-cat" data-id={cat.id}>
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</AdminLayout>
+
+<script>
+    import { supabase } from '../../../lib/supabase';
+
+    const form = document.getElementById('category-form') as HTMLFormElement;
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        
+        const catData = {
+            name: formData.get('name'),
+            slug: formData.get('slug'),
+            parent_id: formData.get('parent_id') || null,
+            order_index: parseInt(formData.get('order_index') as string) || 0
+        };
+
+        const { error } = await supabase.from('categories').insert([catData]);
+
+        if (error) alert("Error: " + error.message);
+        else window.location.reload();
+    });
+
+    document.querySelectorAll('.delete-cat').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = (btn as HTMLElement).dataset.id;
+            if (confirm("¿Eliminar categoría? Los productos asociados podrían quedar huérfanos.")) {
+                const { error } = await supabase.from('categories').delete().eq('id', id);
+                if (error) alert("Error: " + error.message);
+                else window.location.reload();
+            }
+        });
+    });
+</script>

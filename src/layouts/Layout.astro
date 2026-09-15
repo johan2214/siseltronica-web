@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import QuoteCart from '../components/QuoteCart.astro';
 
 interface Props {
 	title: string;
@@ -76,6 +77,7 @@ const { title, description = "Siseltronica | Sistemas Eléctricos y Electrónico
 	</head>
 	<body class="bg-dark text-white overflow-x-hidden">
 		<slot />
+		<QuoteCart />
 
 		<script>
 			// Fade-in on scroll

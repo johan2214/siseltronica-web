@@ -1,0 +1,242 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { supabase } from '../../../../lib/supabase';
+import MediaLibrary from '../../../../components/admin/MediaLibrary.astro';
+
+const id = Astro.url.searchParams.get('id');
+
+if (!id) return Astro.redirect('/admin/productos');
+
+const { data: product } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+if (!product) return Astro.redirect('/admin/productos');
+
+const { data: categories } = await supabase
+    .from('categories')
+    .select('*')
+    .not('parent_id', 'is', null)
+    .order('name');
+---
+
+<AdminLayout title={`Editar: ${product.title}`}>
+    <div class="max-w-4xl mx-auto">
+        <form id="edit-product-form" class="space-y-10 pb-20">
+            <input type="hidden" name="id" value={product.id} />
+            
+            <!-- Header section -->
+            <div class="flex items-center justify-between border-b border-white/5 pb-8">
+                <div>
+                    <h1 class="text-3xl font-black">Editar Producto</h1>
+                    <p class="text-gray-500 mt-1">ID: {product.id}</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="/admin/productos" class="px-6 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all font-bold">Cancelar</a>
+                    <button type="submit" class="px-8 py-3 bg-brand-blue hover:bg-brand-blue-light text-white font-black rounded-xl transition-all shadow-xl shadow-brand-blue/20">Guardar Cambios</button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-12">
+                <!-- Left Column: Main Info -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="glass p-8 rounded-3xl border border-white/10 space-y-6">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <span class="w-1.5 h-6 bg-brand-blue rounded-full"></span>
+                            Información Básica
+                        </h2>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2">Título del Producto</label>
+                            <input type="text" name="title" value={product.title} required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-hidden focus:border-brand-blue/50" />
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2">Slug (URL)</label>
+                            <input type="text" name="slug" value={product.slug} required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-hidden focus:border-brand-blue/50 font-mono" />
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-400 mb-2">Categoría</label>
+                                <select name="category_id" required class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-hidden focus:border-brand-blue/50">
+                                    {categories?.map(cat => (
+                                        <option value={cat.id} selected={cat.id === product.category_id}>{cat.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-400 mb-2">Estado de Stock</label>
+                                <select name="stock_status" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-hidden focus:border-brand-blue/50">
+                                    <option value="instock" selected={product.stock_status === 'instock'}>En Stock</option>
+                                    <option value="outofstock" selected={product.stock_status === 'outofstock'}>Agotado</option>
+                                    <option value="onorder" selected={product.stock_status === 'onorder'}>Bajo Pedido</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2">Descripción Corta</label>
+                            <textarea name="short_description" rows="2" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-hidden focus:border-brand-blue/50">{product.short_description}</textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-400 mb-2">Descripción Completa</label>
+                            <textarea name="description" rows="6" class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-hidden focus:border-brand-blue/50">{product.description}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Sidebar -->
+                <div class="space-y-8">
+                    <div class="glass p-8 rounded-3xl border border-white/10 space-y-6">
+                        <h2 class="text-lg font-bold">Imagen Principal</h2>
+                        <div class="aspect-square rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center p-4 relative group overflow-hidden" id="image-preview-container">
+                            <img id="image-preview" src={product.image_url} class={product.image_url ? 'absolute inset-0 w-full h-full object-cover' : 'hidden absolute inset-0 w-full h-full object-cover'} />
+                            <div class={product.image_url ? 'hidden text-center' : 'text-center'} id="upload-placeholder">
+                                <svg class="w-10 h-10 text-gray-600 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Cambiar Imagen</span>
+                            </div>
+                            <input type="file" id="image-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
+                        </div>
+                        <button type="button" id="open-library" class="w-full py-3 rounded-xl border border-white/10 hover:bg-white/5 text-xs font-bold uppercase tracking-widest transition-all">Elegir de la galería</button>
+                    </div>
+
+                    <div class="glass p-8 rounded-3xl border border-white/10 space-y-6">
+                        <h2 class="text-lg font-bold">Ficha Técnica (PDF)</h2>
+                        <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                            <input type="file" id="pdf-input" accept="application/pdf" class="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-brand-blue file:text-white hover:file:bg-brand-blue-light cursor-pointer" />
+                        </div>
+                        {product.pdf_url && <a href={product.pdf_url} target="_blank" class="block text-center text-xs text-brand-blue hover:underline">Ver PDF actual</a>}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <MediaLibrary />
+</AdminLayout>
+
+<script>
+    import { supabase } from '../../../../lib/supabase';
+
+    const imageInput = document.getElementById('image-input') as HTMLInputElement;
+    const pdfInput = document.getElementById('pdf-input') as HTMLInputElement;
+    const imagePreview = document.getElementById('image-preview') as HTMLImageElement;
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const form = document.getElementById('edit-product-form') as HTMLFormElement;
+    const openLibraryBtn = document.getElementById('open-library');
+
+    let selectedFile: File | null = null;
+    let selectedPdf: File | null = null;
+    let currentImageUrl = imagePreview?.src || '';
+
+    // Open Library
+    openLibraryBtn?.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('open-media-library'));
+    });
+
+    // Handle selection from library
+    window.addEventListener('media-selected', (e: any) => {
+        const { url } = e.detail;
+        console.log('Media selected from library:', url);
+        currentImageUrl = url;
+        if (imagePreview) {
+            imagePreview.src = url;
+            imagePreview.classList.remove('hidden');
+            uploadPlaceholder?.classList.add('hidden');
+            selectedFile = null;
+        }
+    });
+
+    imageInput?.addEventListener('change', (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+            selectedFile = file;
+            currentImageUrl = '';
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (imagePreview && e.target) {
+                    imagePreview.src = e.target.result as string;
+                    imagePreview.classList.remove('hidden');
+                    uploadPlaceholder?.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    pdfInput?.addEventListener('change', (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) selectedPdf = file;
+    });
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Guardando...";
+
+        const formData = new FormData(form);
+        const productId = formData.get('id');
+        let finalImageUrl = currentImageUrl || imagePreview.src;
+        let pdfUrl = ''; // Keep track of PDF URL if we need to update it
+
+        try {
+            // 1. Upload new image if selected
+            if (selectedFile) {
+                const fileName = `${Date.now()}-${selectedFile.name.replace(/\s+/g, '_')}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('catalog')
+                    .upload(fileName, selectedFile);
+
+                if (uploadError) throw new Error("Error subiendo imagen: " + uploadError.message);
+
+                const { data: { publicUrl } } = supabase.storage.from('catalog').getPublicUrl(fileName);
+                finalImageUrl = publicUrl;
+            }
+
+            // 2. Upload PDF if selected
+            if (selectedPdf) {
+                const fileName = `pdf-${Date.now()}-${selectedPdf.name.replace(/\s+/g, '_')}`;
+                const { error: uploadError } = await supabase.storage
+                    .from('catalog')
+                    .upload(fileName, selectedPdf);
+
+                if (uploadError) throw new Error("Error subiendo PDF: " + uploadError.message);
+
+                const { data: { publicUrl } } = supabase.storage.from('catalog').getPublicUrl(fileName);
+                pdfUrl = publicUrl;
+            }
+
+            // 3. Update Product
+            const productData: any = {
+                title: formData.get('title'),
+                slug: formData.get('slug'),
+                short_description: formData.get('short_description'),
+                description: formData.get('description'),
+                category_id: formData.get('category_id'),
+                stock_status: formData.get('stock_status'),
+                image_url: finalImageUrl,
+            };
+
+            if (pdfUrl) productData.pdf_url = pdfUrl;
+
+            const { error: updateError } = await supabase
+                .from('products')
+                .update(productData)
+                .eq('id', productId);
+
+            if (updateError) throw updateError;
+
+            window.location.href = '/admin/productos';
+        } catch (error: any) {
+            alert(error.message);
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Guardar Cambios";
+        }
+    });
+</script>

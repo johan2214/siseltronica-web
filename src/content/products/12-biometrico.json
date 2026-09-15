@@ -1,8 +1,11 @@
 {
-    "title": "Control de Acceso Biométrico",
-    "description": "Sistema de control de acceso con huella digital, tarjeta RFID, contraseña y llave.",
-    "category": "intercom",
+    "title": "Biométrico F18",
+    "shortDescription": "Control de acceso por huella dactilar.",
+    "description": "Control de asistencia y acceso por huella dactilar, tarjeta y clave.",
+    "category": "acceso",
+    "parentCategory": "seguridad",
     "iconColor": "red",
     "iconType": "biometric",
+    "image": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80",
     "order": 12
 }

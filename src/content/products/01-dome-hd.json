@@ -1,9 +1,12 @@
 {
     "title": "Cámara Dome HD 1080p",
+    "shortDescription": "Seguridad discreta y efectiva en HD.",
     "description": "Cámara domo con visión nocturna, resistente al agua IP67, lente gran angular.",
     "category": "camaras",
+    "parentCategory": "seguridad",
     "isNew": true,
     "iconColor": "blue",
     "iconType": "dome",
+    "image": "/images/products/prod-dome-hd.png",
     "order": 1
 }

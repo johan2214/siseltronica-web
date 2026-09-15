@@ -1,8 +1,11 @@
 {
     "title": "UPS 3000VA Online",
-    "description": "UPS línea interactiva 3000VA, protección contra cortes, regulador de voltaje integrado.",
-    "category": "electricos",
+    "shortDescription": "Energía continua para tus sistemas.",
+    "description": "Respaldo de energía ininterrumpida para servidores y equipos críticos.",
+    "category": "ups",
+    "parentCategory": "electricos",
     "iconColor": "blue",
     "iconType": "ups",
+    "image": "https://images.unsplash.com/photo-1558494949-ef010cbdcc48?w=800&q=80",
     "order": 10
 }

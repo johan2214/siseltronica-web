@@ -1,8 +1,11 @@
 {
-    "title": "Video Portero con Pantalla 7\"",
-    "description": "Video intercomunicador con pantalla táctil 7 pulgadas, apertura remota, grabación.",
-    "category": "intercom",
+    "title": "Video Portero IP",
+    "shortDescription": "Ve quién llama desde tu celular.",
+    "description": "Portero con cámara HD, pantalla táctil de 7 pulgadas y conexión al celular.",
+    "category": "acceso",
+    "parentCategory": "seguridad",
     "iconColor": "blue",
     "iconType": "intercom",
+    "image": "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&q=80",
     "order": 7
 }

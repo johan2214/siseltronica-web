@@ -1,8 +1,11 @@
 {
-    "title": "Cable Eléctrico THW 12 AWG",
-    "description": "Rollo de cable eléctrico THW 12 AWG, 100 metros, cobre puro, múltiples colores.",
+    "title": "Cable THW #12",
+    "shortDescription": "Conducción eléctrica de alta calidad.",
+    "description": "Cable eléctrico de cobre de alta conductividad, ideal para instalaciones internas.",
     "category": "cables",
+    "parentCategory": "electricos",
     "iconColor": "red",
     "iconType": "cable",
+    "image": "https://images.unsplash.com/photo-1605833559748-7d8d64998c8a?w=800&q=80",
     "order": 8
 }

@@ -1,8 +1,11 @@
 {
-    "title": "Motor Portón Corredizo 600kg",
-    "description": "Motor para portón corredizo hasta 600kg, control remoto incluido, batería de respaldo.",
-    "category": "portones",
+    "title": "Motor Corredera 600kg",
+    "description": "Motor de alto tráfico para portones de hasta 600kg, incluye 2 controles.",
+    "category": "motores",
+    "parentCategory": "automatizacion",
+    "isPopular": true,
     "iconColor": "green",
     "iconType": "gate",
+    "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&q=80",
     "order": 4
 }

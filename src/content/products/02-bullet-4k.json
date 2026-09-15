@@ -1,9 +1,12 @@
 {
-    "title": "Cámara Bullet IP 4K",
-    "description": "Cámara tipo bala 4K Ultra HD, visión nocturna 60m, detección de movimiento inteligente.",
+    "title": "Cámara Bullet 4K Ultra",
+    "shortDescription": "Potencia visual 4K para exteriores.",
+    "description": "Resolución 4K, visión nocturna de largo alcance, carcasa metálica anti-vandálica.",
     "category": "camaras",
+    "parentCategory": "seguridad",
     "isPopular": true,
     "iconColor": "red",
     "iconType": "bullet",
+    "image": "/images/products/prod-bullet-4k.png",
     "order": 2
 }

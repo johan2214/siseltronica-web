@@ -1,0 +1,38 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+    id: string;
+    name: string;
+    description: string;
+    image: string;
+}
+
+const { id, name, description, image } = Astro.props;
+---
+<a href={`/categorias/${id}`} class="group relative overflow-hidden rounded-3xl glass aspect-square sm:aspect-video flex flex-col justify-end p-8 card-hover fade-in">
+    <div class="absolute inset-0 z-0">
+        <Image 
+            src={image} 
+            alt={name}
+            width={600}
+            height={400}
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div class="absolute inset-0 bg-linear-to-t from-dark via-dark/40 to-transparent opacity-80 group-hover:opacity-70 transition-opacity"></div>
+    </div>
+    
+    <div class="relative z-10">
+        <div class="inline-block px-4 py-1.5 rounded-full bg-brand-blue-light text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4 opacity-0 -translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 shadow-lg">
+            Explorar Categoría
+        </div>
+        <h3 class="text-3xl font-black text-white mb-2 transition-colors duration-300">{name}</h3>
+        <p class="text-zinc-300 text-sm max-w-md line-clamp-2 transition-colors duration-300">{description}</p>
+    </div>
+    
+    <div class="absolute top-8 right-8 w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center opacity-0 translate-x-8 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+    </div>
+</a>

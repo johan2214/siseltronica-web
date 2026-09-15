@@ -2,7 +2,9 @@
 
 @theme {
   --color-brand-blue: #152A85;
+  --color-brand-blue-light: #60a5fa; /* Better contrast for text/hover */
   --color-brand-red: #A70C15;
+  --color-brand-red-light: #f87171;  /* Better contrast for text/hover */
   --color-brand-gray: #71717a;
   --color-dark: #050505;       /* Slightly darker for better contrast with brand colors */
   --color-surface: #0f0f12;    /* Refined surface color */

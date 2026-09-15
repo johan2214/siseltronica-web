@@ -1,0 +1,194 @@
+---
+// MediaLibrary.astro
+---
+
+<div id="media-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md">
+    <div class="bg-[#0a0a0a] border border-white/10 w-full max-w-5xl h-[85vh] rounded-[2.5rem] flex flex-col shadow-2xl overflow-hidden">
+        <!-- Modal Header -->
+        <div class="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div>
+                <h2 class="text-2xl font-black text-white">Librería de Medios</h2>
+                <p class="text-gray-500 text-sm mt-1">Selecciona una imagen existente del catálogo</p>
+            </div>
+            <div class="flex gap-4">
+                <button id="refresh-media" type="button" class="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all" title="Actualizar">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+                <button id="close-media-modal" type="button" class="p-3 rounded-2xl hover:bg-white/5 text-gray-400 hover:text-white transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="px-8 py-6 bg-white/[0.01] border-b border-white/5">
+            <div class="relative group">
+                <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-brand-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input 
+                    type="text" 
+                    id="search-media" 
+                    placeholder="Buscar por nombre de archivo..." 
+                    class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white focus:outline-hidden focus:border-brand-blue/50 transition-all placeholder:text-gray-600"
+                />
+            </div>
+        </div>
+
+        <!-- Media Grid -->
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar relative" id="media-scroll-container">
+            <div id="media-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10">
+                <div class="w-12 h-12 border-4 border-brand-blue/20 border-t-brand-blue rounded-full animate-spin mb-4"></div>
+                <p class="text-gray-500 text-sm font-bold uppercase tracking-widest">Cargando Galería...</p>
+            </div>
+
+            <div id="media-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10 p-8 text-center">
+                <svg class="w-16 h-16 text-red-500/50 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <h3 class="text-xl font-bold text-white mb-2">Error al conectar con Supabase</h3>
+                <p id="error-details" class="text-gray-500 max-w-md mb-8">No pudimos obtener las imágenes del almacenamiento.</p>
+                <button type="button" onclick="loadMedia()" class="px-8 py-3 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-all border border-white/10">Reintentar</button>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6" id="media-grid">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="p-6 border-t border-white/5 bg-white/[0.02] flex justify-end gap-4">
+            <p id="media-count" class="text-[10px] text-gray-500 uppercase tracking-widest flex-1 flex items-center ml-2">Total: 0 imágenes</p>
+            <button id="cancel-media" type="button" class="px-6 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm font-bold">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(59, 130, 246, 0.4);
+    }
+</style>
+
+<script>
+    import { supabase } from '../../lib/supabase';
+
+    const modal = document.getElementById('media-modal');
+    const closeBtn = document.getElementById('close-media-modal');
+    const cancelBtn = document.getElementById('cancel-media');
+    const refreshBtn = document.getElementById('refresh-media');
+    const mediaGrid = document.getElementById('media-grid');
+    const mediaLoading = document.getElementById('media-loading');
+    const mediaError = document.getElementById('media-error');
+    const errorDetails = document.getElementById('error-details');
+    const mediaCount = document.getElementById('media-count');
+    const searchInput = document.getElementById('search-media') as HTMLInputElement;
+
+    async function loadMedia() {
+        if (!mediaGrid || !mediaLoading || !mediaCount || !mediaError) return;
+        
+        mediaLoading.classList.remove('hidden');
+        mediaError.classList.add('hidden');
+        mediaGrid.innerHTML = '';
+        
+        try {
+            // Simplified call to test connectivity
+            const { data: files, error } = await supabase.storage.from('catalog').list('', {
+                limit: 100,
+                offset: 0
+            });
+
+            if (error) {
+                console.error('Supabase Storage Error:', error);
+                throw error;
+            }
+
+            const images = files?.filter(file => 
+                file.name !== '.emptyFolderPlaceholder' && 
+                file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+            ) || [];
+
+            mediaCount.textContent = `Total: ${images.length} imágenes`;
+
+            if (images.length === 0) {
+                mediaGrid.innerHTML = `
+                    <div class="col-span-full py-20 text-center">
+                        <svg class="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <p class="text-gray-500 font-bold uppercase tracking-widest text-xs">No hay imágenes en la galería</p>
+                    </div>
+                `;
+            } else {
+                images.forEach(img => {
+                    const { data } = supabase.storage.from('catalog').getPublicUrl(img.name);
+                    const publicUrl = data.publicUrl;
+                    
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'media-item group relative aspect-square rounded-2xl border border-white/5 overflow-hidden bg-white/5 hover:border-brand-blue/50 transition-all';
+                    btn.dataset.url = publicUrl;
+                    btn.dataset.name = img.name.toLowerCase();
+                    btn.title = img.name;
+                    btn.innerHTML = `
+                        <img src="${publicUrl}" alt="${img.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.src='https://placehold.co/400x400/111/444?text=Error'; this.classList.add('opacity-40');" />
+                        <div class="absolute inset-0 bg-brand-blue/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="text-white text-[10px] font-black uppercase tracking-widest bg-black/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">Seleccionar</span>
+                        </div>
+                    `;
+                    
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.dispatchEvent(new CustomEvent('media-selected', { detail: { url: publicUrl } }));
+                        closeModal();
+                    });
+                    
+                    mediaGrid.appendChild(btn);
+                });
+            }
+        } catch (err: any) {
+            console.error('Error loading media:', err);
+            mediaError.classList.remove('hidden');
+            if (errorDetails) errorDetails.textContent = err.message || 'Error desconocido al conectar con Supabase.';
+        } finally {
+            mediaLoading.classList.add('hidden');
+        }
+    }
+
+    // Expose loadMedia to window for the retry button
+    (window as any).loadMedia = loadMedia;
+
+    // Search functionality
+    searchInput?.addEventListener('input', (e) => {
+        const term = (e.target as HTMLInputElement).value.toLowerCase();
+        const items = document.querySelectorAll('.media-item');
+        items.forEach(item => {
+            const name = (item as HTMLElement).dataset.name || '';
+            if (name.includes(term)) {
+                (item as HTMLElement).style.display = 'block';
+            } else {
+                (item as HTMLElement).style.display = 'none';
+            }
+        });
+    });
+
+    function closeModal() {
+        modal?.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    closeBtn?.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+    cancelBtn?.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+    refreshBtn?.addEventListener('click', (e) => { e.preventDefault(); loadMedia(); });
+
+    // Handle opening from parent
+    window.addEventListener('open-media-library', () => {
+        modal?.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        loadMedia();
+    });
+</script>
